@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Музей Мета-Кнопок</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #eee;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .glitch {
+            animation: glitchAnim 0.3s infinite;
+        }
+
+        @keyframes glitchAnim {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        .narrator-box {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #00ff88;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 700px;
+            margin-bottom: 40px;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+            min-height: 150px;
+        }
+
+        .narrator-text {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .typing::after {
+            content: '▊';
+            animation: blink 0.7s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .button-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .meta-button {
+            padding: 15px 40px;
+            font-size: 18px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            border: 3px solid #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+            color: #00ff88;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            position: relative;
+            border-radius: 5px;
+        }
+
+        .meta-button:hover {
+            background: rgba(0, 255, 136, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            transform: scale(1.05);
+        }
+
+        .meta-button.runaway {
+            position: fixed;
+            transition: all 0.5s ease-out;
+        }
+
+        .stats {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border: 1px solid #00ff88;
+            border-radius: 5px;
+            font-size: 12px;
+            min-width: 200px;
+        }
+
+        .stats-item {
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .invisible-button {
+            opacity: 0;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .invisible-button:hover {
+            opacity: 0.3;
+        }
+
+        .achievement {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 215, 0, 0.9);
+            color: #000;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-weight: bold;
+            animation: slideDown 0.5s, slideUp 0.5s 2.5s;
+            display: none;
+        }
+
+        @keyframes slideDown {
+            from { transform: translate(-50%, -100%); }
+            to { transform: translate(-50%, 0); }
+        }
+
+        @keyframes slideUp {
+            from { transform: translate(-50%, 0); }
+            to { transform: translate(-50%, -100%); }
+        }
+
+        .visit-counter {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border: 1px solid #ff4444;
+            border-radius: 5px;
+            font-size: 11px;
+        }
+
+        @media (max-width: 768px) {
+            .narrator-box {
+                padding: 20px;
+                max-width: 90%;
+            }
+            
+            .narrator-text {
+                font-size: 16px;
+            }
+
+            .stats {
+                font-size: 10px;
+                min-width: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="achievement" id="achievement"></div>
+    
+    <div class="stats" id="stats">
+        <div class="stats-item">
+            <span>Кнопок нажато:</span>
+            <span id="clickCount">0</span>
+        </div>
+        <div class="stats-item">
+            <span>Бессмысленность:</span>
+            <span id="meaningless">0%</span>
+        </div>
+        <div class="stats-item">
+            <span>Экзистенциальный кризис:</span>
+            <span id="crisis">низкий</span>
+        </div>
+    </div>
+
+    <div class="visit-counter" id="visitCounter"></div>
+
+    <div class="narrator-box" id="narratorBox">
+        <div class="narrator-text" id="narratorText"></div>
+        <div class="button-container" id="buttonContainer"></div>
+    </div>
+
+    <audio id="ambientSound" loop>
+        <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=" type="audio/wav">
+    </audio>
+
+    <script>
+        // Проверка DevTools
+        let devToolsOpen = false;
+        const checkDevTools = () => {
+            const threshold = 160;
+            devToolsOpen = window.outerWidth - window.innerWidth > threshold || 
+                          window.outerHeight - window.innerHeight > threshold;
+        };
+        setInterval(checkDevTools, 1000);
+
+        // Консольные пасхалки
+        console.log('%cА вы любопытный...', 'color: #00ff88; font-size: 20px; font-weight: bold;');
+        console.log('%cРассказчик видит всё.', 'color: #ff4444; font-size: 14px;');
+        console.log('%cДаже здесь.', 'color: #ffff00; font-size: 12px;');
+
+        // Состояние игры
+        const state = {
+            stage: 0,
+            clicks: 0,
+            path: [],
+            achievements: new Set(),
+            startTime: Date.now(),
+            idleTime: 0,
+            visits: 0
+        };
+
+        // Загрузка прогресса
+        const savedVisits = parseInt(localStorage.getItem('museumVisits') || '0');
+        state.visits = savedVisits + 1;
+        localStorage.setItem('museumVisits', state.visits);
+
+        // Обновление статистики
+        function updateStats() {
+            document.getElementById('clickCount').textContent = state.clicks;
+            document.getElementById('meaningless').textContent = Math.min(100, state.clicks * 7) + '%';
+            
+            const crisisLevels = ['низкий', 'средний', 'высокий', 'критический', 'ЗАПРЕДЕЛЬНЫЙ'];
+            const crisisIndex = Math.min(4, Math.floor(state.clicks / 5));
+            document.getElementById('crisis').textContent = crisisLevels[crisisIndex];
+        }
+
+        // Обновление счётчика визитов
+        function updateVisitCounter() {
+            const counter = document.getElementById('visitCounter');
+            if (state.visits === 1) {
+                counter.textContent = 'Первый визит';
+            } else if (state.visits < 5) {
+                counter.textContent = `Визит №${state.visits}. Вы возвращаетесь...`;
+            } else {
+                counter.textContent = `Визит №${state.visits}. Вам здесь нравится?`;
+            }
+        }
+
+        // Показ достижения
+        function showAchievement(text) {
+            const ach = document.getElementById('achievement');
+            ach.textContent = '🏆 ' + text;
+            ach.style.display = 'block';
+            setTimeout(() => {
+                ach.style.display = 'none';
+            }, 3000);
+        }
+
+        // Анимация печати
+        function typeText(element, text, callback) {
+            element.textContent = '';
+            element.classList.add('typing');
+            let i = 0;
+            
+            const interval = setInterval(() => {
+                if (i < text.length) {
+                    element.textContent += text[i];
+                    i++;
+                } else {
+                    clearInterval(interval);
+                    element.classList.remove('typing');
+                    if (callback) callback();
+                }
+            }, 30);
+        }
+
+        // Создание кнопок
+        function createButtons(buttons) {
+            const container = document.getElementById('buttonContainer');
+            container.innerHTML = '';
+            
+            buttons.forEach(btn => {
+                const button = document.createElement('button');
+                button.className = 'meta-button';
+                button.textContent = btn.text;
+                button.onclick = () => {
+                    state.clicks++;
+                    state.path.push(btn.id);
+                    updateStats();
+                    btn.action();
+                };
+                
+                if (btn.special === 'runaway') {
+                    button.onmouseenter = () => {
+                        if (!button.classList.contains('runaway')) {
+                            button.classList.add('runaway');
+                            const x = Math.random() * (window.innerWidth - 200);
+                            const y = Math.random() * (window.innerHeight - 100);
+                            button.style.left = x + 'px';
+                            button.style.top = y + 'px';
+                        }
+                    };
+                }
+                
+                container.appendChild(button);
+            });
+        }
+
+        // Сценарии
+        const scenarios = {
+            start: () => {
+                let text = 'Добро пожаловать в Музей Мета-Кнопок. ';
+                
+                if (state.visits > 1) {
+                    text = `О. Вы снова здесь. Это ваш визит номер ${state.visits}. ${
+                        state.visits > 5 ? 'Вам действительно нечем заняться?' : 'Я... скучал.'
+                    } `;
+                }
+                
+                text += 'Перед вами кнопка «НАЧАТЬ». Нажмите её. Или не нажимайте. Но мы оба знаем, что вы нажмёте.';
+                
+                const narratorText = document.getElementById('narratorText');
+                typeText(narratorText, text, () => {
+                    createButtons([
+                        {
+                            id: 'start',
+                            text: 'НАЧАТЬ',
+                            action: scenarios.choice1
+                        }
+                    ]);
+                });
+            },
+
+            choice1: () => {
+                const texts = [
+                    'Отлично. Предсказуемо, но отлично. Теперь у вас есть выбор. Красная кнопка или Синяя кнопка. Выбирайте мудро. Хотя это не имеет значения.',
+                    'Вы нажали кнопку. Поздравляю. Это было сложное решение? Сейчас будет сложнее.'
+                ];
+                
+                if (devToolsOpen && !state.achievements.has('hacker')) {
+                    state.achievements.add('hacker');
+                    showAchievement('Достижение: Хакер. Вы открыли консоль. Я вижу вас.');
+                }
+                
+                typeText(document.getElementById('narratorText'), texts[Math.floor(Math.random() * texts.length)], () => {
+                    createButtons([
+                        {
+                            id: 'red',
+                            text: 'КРАСНАЯ',
+                            action: scenarios.redPath
+                        },
+                        {
+                            id: 'blue',
+                            text: 'СИНЯЯ',
+                            action: scenarios.bluePath
+                        },
+                        {
+                            id: 'wait',
+                            text: 'ПОДОЖДАТЬ',
+                            action: scenarios.waitPath
+                        }
+                    ]);
+                });
+            },
+
+            redPath: () => {
+                const box = document.getElementById('narratorBox');
+                box.classList.add('glitch');
+                setTimeout(() => box.classList.remove('glitch'), 300);
+                
+                typeText(document.getElementById('narratorText'), 
+                    'Красная. Классика. Вы выбрали опасность. Или безопасность? Я никогда не помню. В любом случае, теперь появится кнопка, которая убегает от вас. Попробуйте поймать её. Это важно для сюжета.', 
+                    () => {
+                        createButtons([
+                            {
+                                id: 'runaway',
+                                text: 'ПОЙМАЙ МЕНЯ',
+                                special: 'runaway',
+                                action: scenarios.caughtButton
+                            },
+                            {
+                                id: 'give_up',
+                                text: 'СДАТЬСЯ',
+                                action: scenarios.giveUp
+                            }
+                        ]);
+                    }
+                );
+            },
+
+            bluePath: () => {
+                typeText(document.getElementById('narratorText'), 
+                    'Синяя. Интересно. Знаете ли вы, что синий цвет символизирует спокойствие? Или печаль? Наверное, второе в вашем случае. Потому что впереди только пустота. И ещё одна кнопка.', 
+                    () => {
+                        createButtons([
+                            {
+                                id: 'void',
+                                text: 'В ПУСТОТУ',
+                                action: scenarios.voidPath
+                            },
+                            {
+                                id: 'back',
+                                text: 'НАЗАД',
+                                action: scenarios.backPath
+                            }
+                        ]);
+                    }
+                );
+            },
+
+            waitPath: () => {
+                if (!state.achievements.has('philosopher')) {
+                    state.achievements.add('philosopher');
+                    showAchievement('Достижение: Философ. Вы выбрали созерцание.');
+                }
+                
+                typeText(document.getElementById('narratorText'), 
+                    'Ах. Выбор не выбирать. Глубокомысленно. Вы просто стоите здесь и смотрите на экран. Как будто ждёте чего-то значительного. Спойлер: не дождётесь. Но вот вам кнопка за терпение.', 
+                    () => {
+                        createButtons([
+                            {
+                                id: 'patience',
+                                text: 'БЛАГОДАРЮ',
+                                action: scenarios.nirvana
+                            }
+                        ]);
+                    }
+                );
+            },
+
+            caughtButton: () => {
+                if (!state.achievements.has('hunter')) {
+                    state.achievements.add('hunter');
+                    showAchievement('Достижение: Охотник. Вы поймали убегающую кнопку.');
+                }
+                
+                typeText(document.getElementById('narratorText'), 
+                    'Впечатляюще. Вы поймали кнопку. Ваша награда: осознание того, что вы потратили время на погоню за пикселями. Поздравляю. Хотите повторить или продолжим этот абсурд?', 
+                    () => {
+                        createButtons([
+                            {
+                                id: 'repeat',
+                                text: 'ЕЩЁ РАЗ',
+                                action: scenarios.repetitionPath
+                            },
+                            {
+                                id: 'continue',
+                                text: 'ПРОДОЛЖИТЬ',
+                                action: scenarios.finalChoice
+                            }
+                        ]);
+                    }
+                );
+            },
+
+            giveUp: () => {
+                typeText(document.getElementById('narratorText'), 
+                    'Вы сдались. Мудрое решение. Зачем гнаться за тем, что не хочет быть пойманным? Это метафора вашей жизни? Извините, слишком жестко. Давайте продолжим.', 
+                    () => {
+                        createButtons([
+                            {
+                                id: 'continue',
+                                text: 'ПРОДОЛЖИТЬ',
+                                action: scenarios.finalChoice
+                            }
+                        ]);
+                    }
+                );
+            },
+
+            voidPath: () => {
+                document.body.style.background = '#000';
+                setTimeout(() => {
+                    document.body.style.background = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)';
+                }, 2000);
+                
+                typeText(document.getElementById('narratorText'), 
+                    'Вы шагнули в пустоту. Там темно. И тихо. И немного неуютно. Впрочем, вы можете вернуться. Пустота не обижается. Она вообще ничего не чувствует. Как и эти кнопки.', 
+                    () => {
+                        createButtons([
+                            {
+                                id: 'return',
+                                text: 'ВЕРНУТЬСЯ',
+                                action: scenarios.finalChoice
+                            }
+                        ]);
+                    }
+                );
+            },
+
+            backPath: () => {
+                typeText(document.getElementById('narratorText'), 
+                    'Назад? Серьёзно? Я же говорил, что это ничего не изменит. Но хорошо. Вот вам та же самая точка, только с более длинной речью. Надеюсь, вы довольны.', 
+                    () => {
+                        scenarios.choice1();
+                    }
+                );
+            },
+
+            repetitionPath: () => {
+                const repeatCount = state.path.filter(p => p === 'repeat').length;
+                
+                if (repeatCount >= 3 && !state.achievements.has('sisyphus')) {
+                    state.achievements.add('sisyphus');
+                    showAchievement('Достижение: Сизиф. Вы поняли природу повторения.');
+                }
+                
+                const texts = [
+                    'Снова? Хорошо. Кнопка. Вы. Погоня. История стара как мир.',
+                    'Это уже не смешно. Впрочем, было ли это когда-то смешно?',
+                    'Вы знаете определение безумия? Это делать одно и то же и ожидать разных результатов. Но продолжайте.',
+                    'Я устал. Вы устали. Кнопка устала. Давайте закончим это.'
+                ];
+                
+                typeText(document.getElementById('narratorText'), 
+                    texts[Math.min(repeatCount, texts.length - 1)], 
+                    () => {
+                        if (repeatCount >= 3) {
+                            scenarios.finalChoice();
+                        } else {
+                            scenarios.redPath();
+                        }
+                    }
+                );
+            },
+
+            nirvana: () => {
+                if (!state.achievements.has('nirvana')) {
+                    state.achievements.add('nirvana');
+                    showAchievement('Достижение: Нирвана. Вы достигли кнопочного просветления.');
+                }
+                
+                typeText(document.getElementById('narratorText'), 
+                    'Вы благодарите меня? Меня? Рассказчика, который насмехается над вашими выборами? Как мило. Это почти трогательно. Почти. Что ж, вот ваша награда: ещё одна кнопка.', 
+                    () => {
+                        scenarios.finalChoice();
+                    }
+                );
+            },
+
+            finalChoice: () => {
+                const narratorText = document.getElementById('narratorText');
+                let text = 'Мы подошли к финалу. У вас есть выбор. ';
+                
+                if (state.achievements.size >= 3) {
+                    text += 'Вы собрали достаточно достижений. Впечатляет. Бесполезно, но впечатляет. ';
+                }
+                
+                text += 'Вы можете начать заново, принять абсурд или... попробовать найти невидимую кнопку отчаяния. Она где-то здесь. Может быть.';
+                
+                typeText(narratorText, text, () => {
+                    createButtons([
+                        {
+                            id: 'restart',
+                            text: 'НАЧАТЬ ЗАНОВО',
+                            action: () => {
+                                state.clicks = 0;
+                                state.path = [];
+                                scenarios.start();
+                            }
+                        },
+                        {
+                            id: 'accept',
+                            text: 'ПРИНЯТЬ АБСУРД',
+                            action: scenarios.ending
+                        }
+                    ]);
+                    
+                    // Невидимая кнопка
+                    const invisBtn = document.createElement('button');
+                    invisBtn.className = 'meta-button invisible-button';
+                    invisBtn.textContent = 'ОТЧАЯНИЕ';
+                    invisBtn.onclick = scenarios.secretEnding;
+                    document.getElementById('buttonContainer').appendChild(invisBtn);
+                });
+            },
+
+            ending: () => {
+                typeText(document.getElementById('narratorText'), 
+                    `Поздравляю. Вы прошли Музей Мета-Кнопок. Вы нажали ${state.clicks} кнопок. Получили ${state.achievements.size} достижений. Узнали, что всё это было бессмысленно. Но вы же знали это с самого начала, правда? До встречи. Может быть.`, 
+                    () => {
+                        setTimeout(() => {
+                            if (confirm('Начать сначала?')) {
+                                location.reload();
+                            }
+                        }, 3000);
+                    }
+                );
+            },
+
+            secretEnding: () => {
+                if (!state.achievements.has('despair')) {
+                    state.achievements.add('despair');
+                    showAchievement('Секретное достижение: Отчаяние. Вы нашли то, что не должны были найти.');
+                }
+                
+                document.body.classList.add('glitch');
+                typeText(document.getElementById('narratorText'), 
+                    'Вы... нашли её. Невидимую кнопку. Я даже не думал, что кто-то будет искать. Вы разрушили повествование. Вы сломали игру. Вы... свободны? Или нет. Я не знаю больше. Всё потеряло смысл. Поздравляю.', 
+                    () => {
+                        setTimeout(() => {
+                            document.body.style.background = '#fff';
+                            document.getElementById('narratorText').textContent = 'Конец?';
+                            document.getElementById('narratorText').style.color = '#000';
+                            document.getElementById('buttonContainer').innerHTML = '';
+                            document.getElementById('stats').style.display = 'none';
+                        }, 2000);
+                    }
+                );
+            }
+        };
+
+        // Отслеживание попытки закрыть страницу
+        window.addEventListener('beforeunload', (e) => {
+            if (state.clicks > 0) {
+                e.preventDefault();
+                e.returnValue = 'Вы уверены? Ваш прогресс будет утерян. Хотя какой прогресс? Вы просто нажимали кнопки.';
+                return e.returnValue;
+            }
+        });
+
+        // Отслеживание бездействия
+        let idleTimer;
+        function resetIdle() {
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => {
+                console.log('%cВы всё ещё здесь? Впечатляет.', 'color: #00ff88; font-size: 14px;');
+            }, 30000);
+        }
+        document.addEventListener('mousemove', resetIdle);
+        document.addEventListener('click', resetIdle);
+
+        // Инициализация
+        updateStats();
+        updateVisitCounter();
+        scenarios.start();
+        resetIdle();
+    </script>
+</body>
+</html>
